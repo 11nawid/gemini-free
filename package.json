@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.3",
-    "better-sqlite3": "^13.0.3",
+    "better-sqlite3": "12.11.1",
     "katex": "^0.18.6",
     "lucide-react": "^1.39.0",
     "motion": "^13.2.0",
@@ -31,5 +31,8 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "typescript": "^5.7.0"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true
   }
 }
