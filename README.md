@@ -1,56 +1,70 @@
 # Gemini Free
 
-A full-stack AI workspace with a conversational assistant for code, Firebase architectures, and interactive brainstorming. Includes a local OpenAI-compatible API you can use from any client.
+A self-hosted, **OpenAI-compatible API for Google Gemini — powered by your free Gemini web session**. No paid API key, no billing, no quotas. Gemini Free speaks Google's internal Gemini web protocol (the same one behind gemini.google.com) using the cookies from your browser, and translates standard OpenAI API calls into Gemini calls on your own machine.
+
+It also ships with a full web app — Chat, Learn and Draw modes — built directly on top of the local API, so you can start using it the moment it boots.
+
+## Why
+
+The official Gemini API is pay-per-token. The Gemini **web** app is free — and Gemini Free simply bridges the two: accept OpenAI-style requests locally, forward them to your free Gemini session, and stream the response back.
 
 ## Features
 
-- **Chat Mode**: Interactive full-stack AI pair programmer
-- **Learn Mode**: Database & systems exploration with guided architecture walkthroughs
-- **Draw Mode**: Visual diagramming and SVG artboard canvas
-- **Local AI API**: OpenAI-compatible endpoints (`/api/v1/chat/completions`) backed by the Gemini engine
-- **Local persistence**: all conversations are saved to SQLite on your machine
+- **Free Gemini, for real** — reuses the Gemini access you already have signed in at gemini.google.com. No API key, no credit card.
+- **OpenAI-compatible local API** — `/api/v1/chat/completions`, `/api/v1/models`, `/api/v1/responses`. Plug in any OpenAI SDK or tool with a base URL change.
+- **Latest Gemini models** — the full free-tier lineup, including deep-thinking variants and streaming responses.
+- **Built-in web UI** — Chat, Learn and Draw modes on top of the local API.
+- **Local-first & private** — requests go through your machine; conversation history is stored in SQLite.
+- **Browser extension included** — a ready-to-install MV3 extension that relays requests through your residential connection to keep your session healthy.
 
-## Tech Stack
+## How it works
 
-- Next.js 15
-- React 19
-- Tailwind CSS 4
-- SQLite (better-sqlite3)
-- Motion (Framer Motion)
+Gemini Free is an unofficial client for Google's Gemini consumer web interface. Authentication is cookie-based:
+
+- `cookie_file` — path to a cookies file containing your `__Secure-1PSID` / `__Secure-1PSIDTS` session cookies (extract from your logged-in gemini.google.com session)
+- `gemini_bl` — the current web client build label (`boq_assistant-bard-web-server_...`), embedded in every request
+- `xsrf_token` / `auth_user` — optional cross-site-request token pairing
+
+Requests are translated from the OpenAI format and delivered over the same internal `StreamGenerate` protocol the web app uses.
+
+> **Honest caveats** — this talks to Google's web interface, not a public API. It can break when Google changes anything, and using it is governed by Google's Terms of Service. It is a personal, self-hosted tool — not a commercial product. Use at your own risk.
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+
-- npm or yarn
+- npm
 
-### Installation
+### Install & run
 
 ```bash
-# Clone the repository
-git clone https://github.com/<your-username>/gemini-free.git
-
-# Navigate to project directory
+git clone https://github.com/11nawid/gemini-free.git
 cd gemini-free
-
-# Install dependencies
 npm install
 
-# Run development server
+# Create your runtime config from the example
+cp config.example.json config.json
+```
+
+Edit `config.json` and set:
+
+```json
+{
+  "cookie_file": "./cookies.json",
+  "gemini_bl": "boq_assistant-bard-web-server_20260716.08_p0"
+}
+```
+
+```bash
 npm run dev
 ```
 
-### Login
-
-The app uses a simple local gate — use the demo credentials:
-
-- **Email**: admin@geminifree.dev
-- **Password**: gemini123
+The web app opens at `http://localhost:8081` (login: `admin@geminifree.dev` / `gemini123`) and the API is served on the same port.
 
 ## Local AI API
 
-Gemini Free exposes an OpenAI-compatible API. No API key is needed unless you configure `api_keys` in `config.json`.
+Gemini Free exposes an OpenAI-compatible API. By default it is open; set `api_keys` in `config.json` to require a Bearer token.
 
 **Chat completions**
 
@@ -72,7 +86,9 @@ curl -X POST http://localhost:8081/api/v1/chat/completions \
 curl http://localhost:8081/api/v1/models
 ```
 
-**Available models**
+**Gemini-style endpoints** — `/api/v1beta/models` and `/api/v1beta/models/{model}` are also provided.
+
+### Available models
 
 | Model | Description |
 | --- | --- |
@@ -82,28 +98,27 @@ curl http://localhost:8081/api/v1/models
 | `gemini-3.5-flash-thinking` | Deep thinking mode, longest output |
 | `gemini-3.1-pro` | Pro model |
 | `gemini-3.1-pro-enhanced` | Pro with enhanced output (experimental) |
-| `gemini-auto` | Auto model selection |
+| `gemini-auto` | Automatic model selection |
 | `gemini-3.5-flash-thinking-lite` | Dynamic thinking with adaptive depth |
 | `gemini-flash-lite` | Lightweight fast model |
 
-## Database
-
-The application uses SQLite for offline chat storage. The database file (`gemini-free.db`) is created automatically in the project root directory when you start the application.
-
-### Database Schema
-
-- **threads**: Stores chat thread information
-- **messages**: Stores individual messages within threads
-
 ## Configuration
 
-Runtime configuration lives in `config.json` (auto-created from defaults if missing). Key options:
+Runtime config lives in `config.json` (auto-created from defaults if missing). See `config.example.json`.
 
-- `port` / `host` — server binding (default `8081` / `0.0.0.0`)
-- `default_model` — fallback model for API requests
-- `api_keys` — optional list of API keys; if empty, the API is open
-- `cookie_file` — path to the Gemini web cookie file used by the engine
-- `log_requests` — enable/disable request logging
+| Key | Description |
+| --- | --- |
+| `port` / `host` | Server binding (default `8081` / `0.0.0.0`) |
+| `cookie_file` | Path to the Gemini web session cookie file |
+| `gemini_bl` | Web client build label used in requests |
+| `xsrf_token` / `auth_user` | Optional request-token pairing |
+| `default_model` | Fallback model for API requests |
+| `api_keys` | Optional list of API keys; if empty, the API is open |
+| `proxy` | Optional outbound proxy |
+| `retry_attempts` / `retry_delay_sec` | Upstream retry policy |
+| `request_timeout_sec` | Upstream request timeout |
+| `log_requests` | Enable/disable request logging |
+| `temporary_chats` | Treat chats as ephemeral |
 
 ## Project Structure
 
@@ -114,15 +129,27 @@ gemini-free/
 │   │   ├── api/
 │   │   │   ├── threads/         # Thread management API
 │   │   │   └── v1/              # OpenAI-compatible API
-│   │   ├── chat/                # Main chat page
+│   │   ├── chat/                # Web chat (Chat / Learn / Draw modes)
 │   │   ├── login/               # Login page
 │   │   └── page.tsx             # Landing page
-│   ├── components/              # Reusable UI components
-│   └── lib/                     # Utility functions and database
-├── public/                      # Static assets
-├── config.json                  # Runtime configuration
+│   ├── components/              # UI components
+│   └── lib/                     # Engine, config, database
+├── public/
+│   └── extension/               # MV3 browser extension (cookie relay)
+├── config.json                  # Runtime configuration (gitignored)
+├── config.example.json          # Config template
 └── scripts/                     # Build/dev helper scripts
 ```
+
+## Tech Stack
+
+- Next.js 15 · React 19 · Tailwind CSS 4
+- SQLite (better-sqlite3) for local history
+- TypeScript everywhere
+
+## Disclaimer
+
+Unofficial, reverse-engineered, and not affiliated with or endorsed by Google LLC. Uses the Gemini consumer web interface — automated access may violate Google's Terms of Service.
 
 ## License
 
