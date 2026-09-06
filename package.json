@@ -1,0 +1,35 @@
+{
+  "name": "gemini-free",
+  "version": "1.1.0",
+  "private": true,
+  "description": "OpenAI-compatible API for Google Gemini Web — Next.js",
+  "scripts": {
+    "clean": "node scripts/clean-build.js",
+    "predev": "node scripts/free-port.js",
+    "dev": "node scripts/clean-build.js && next dev -p 8081",
+    "dev:turbo": "node scripts/clean-build.js && next dev --turbopack -p 8081",
+    "build": "node scripts/clean-build.js && next build",
+    "prestart": "node scripts/free-port.js",
+    "start": "node scripts/free-port.js && next start -p 8081",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "better-sqlite3": "^13.0.3",
+    "katex": "^0.18.6",
+    "lucide-react": "^1.39.0",
+    "motion": "^13.2.0",
+    "next": "^15.3.0",
+    "postcss": "^8.5.26",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.3.3",
+    "undici": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}
